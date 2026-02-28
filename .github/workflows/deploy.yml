@@ -21,6 +21,8 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y ansible
 
       - name: Run Ansible Playbook
+        env:
+          ANSIBLE_HOST_KEY_CHECKING: 'false'
         run: |
           ansible-playbook -i inventory.ini playbook.yml \
           --user ubuntu --private-key ~/.ssh/id_rsa
