@@ -1,0 +1,29 @@
+# --- Sensitive Keys & Credentials ---
+# Excluding  private and public SSH keys
+terraformkey
+terraformkey.pub
+*.pem
+*.key
+
+# --- Terraform ---
+.terraform/
+.terraform.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+
+# --- Ansible & Some other Logs ----
+*.retry
+ansible.log
+
+# --- OS & IDE Files --
+.DS_Store
+.vscode/
+*~
+*.swp
+
+# --Logs--
+*.log
+
+# --Local Documentation --
+installation.md
+final report.md
