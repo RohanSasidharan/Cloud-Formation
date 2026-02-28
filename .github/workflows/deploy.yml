@@ -3,6 +3,10 @@ name: CICD Pipeline Deployment
 on:
   push:
     branches: ["main"]
+    # Only trigger if the application or Dockerfile changes [cite: 27]
+    paths:
+      - 'app/**'
+      - '.github/workflows/deploy.yml'
 
 permissions:
   contents: read
@@ -10,7 +14,8 @@ permissions:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: rohansasidharan/custom-webapp   
+  # Ensure this matches your GitHub username/repo-name lowercased 
+  IMAGE_NAME: ${{ github.repository }} 
 
 jobs:
   build-and-deploy:
@@ -25,6 +30,7 @@ jobs:
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
+          # GITHUB_TOKEN has permission to push to the local repo registry 
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
@@ -39,21 +45,21 @@ jobs:
       - name: Deploy on EC2 (pull + restart container)
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.SERVER_IP }}
+          username: ubuntu
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
             set -e
 
-            # Login on EC2 to pull from GHCR (PAT needed here)
-            echo "${{ secrets.GHCR_PAT }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            # Login on EC2 to pull from GHCR using your PAT 
+            echo "${{ secrets.GHCR_PAT }}" | sudo docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            sudo docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-            docker stop webapp || true
-            docker rm webapp || true
+            sudo docker stop webapp || true
+            sudo docker rm webapp || true
 
-            docker run -d --name webapp -p 80:80 --restart always \
+            sudo docker run -d --name webapp -p 80:80 --restart always \
               ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-            docker image prune -f
+            sudo docker image prune -af
