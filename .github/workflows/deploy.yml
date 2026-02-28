@@ -3,7 +3,6 @@ name: CICD Pipeline Deployment
 on:
   push:
     branches: ["main"]
-    # Only trigger if the application or Dockerfile changes [cite: 27]
     paths:
       - 'app/**'
       - '.github/workflows/deploy.yml'
@@ -28,8 +27,7 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          # GITHUB_TOKEN has permission to push to the local repo registry 
+          username: ${{ github.actor }} 
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push Docker image
